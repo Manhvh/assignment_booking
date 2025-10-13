@@ -87,6 +87,7 @@ const RoomDetails = () => {
         })
 
         if (data.success) {
+          setIsBooking(false);
           setIsBooked(true);
           toast.success(data.message);
           
