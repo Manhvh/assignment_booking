@@ -82,13 +82,12 @@ const RoomDetails = () => {
         return checkAvailability();
       } else {
         setIsBooking(true);
+        setIsBooked(true); // Show "Booked" immediately
         const { data } = await axios.post('/api/bookings/book', { room: id, checkInDate, checkOutDate, guests, paymentMethod: "Pay At Hotel" }, {
           headers: { Authorization: `Bearer ${await getToken()}` }
         })
 
         if (data.success) {
-          setIsBooking(false);
-          setIsBooked(true);
           toast.success(data.message);
           
           // Wait for 2 seconds to show the "Booked" state before navigating
@@ -98,6 +97,7 @@ const RoomDetails = () => {
           }, 2000);
         } else {
           setIsBooking(false);
+          setIsBooked(false);
           toast.error(data.message);
         }
       }
