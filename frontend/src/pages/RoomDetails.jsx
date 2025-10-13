@@ -18,6 +18,8 @@ const RoomDetails = () => {
 
   const [isAvailable, setIsAvailable] = useState(false);
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
+  const [isBooking, setIsBooking] = useState(false);
+  const [isBooked, setIsBooked] = useState(false);
 
   //check if the Room is Available
   const checkAvailability = async () => {
@@ -79,19 +81,27 @@ const RoomDetails = () => {
       if (!isAvailable) {
         return checkAvailability();
       } else {
+        setIsBooking(true);
         const { data } = await axios.post('/api/bookings/book', { room: id, checkInDate, checkOutDate, guests, paymentMethod: "Pay At Hotel" }, {
           headers: { Authorization: `Bearer ${await getToken()}` }
         })
 
         if (data.success) {
+          setIsBooked(true);
           toast.success(data.message);
-          navigate('/my-bookings');
-          scrollTo(0, 0);
+          
+          // Wait for 2 seconds to show the "Booked" state before navigating
+          setTimeout(() => {
+            navigate('/my-bookings');
+            scrollTo(0, 0);
+          }, 2000);
         } else {
+          setIsBooking(false);
           toast.error(data.message);
         }
       }
     } catch (error) {
+      setIsBooking(false);
       toast.error(error.response?.data?.message || error.message || 'Failed to process booking');
     }
   }
@@ -213,10 +223,29 @@ const RoomDetails = () => {
             </div>
             <button 
               type="submit" 
-              disabled={isCheckingAvailability}
-              className="w-full bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all text-white rounded-lg py-4 text-base font-semibold cursor-pointer shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isCheckingAvailability || isBooking || isBooked}
+              className={`w-full transition-all text-white rounded-lg py-4 text-base font-semibold cursor-pointer shadow-lg disabled:cursor-not-allowed ${
+                isBooked 
+                  ? 'bg-green-600 hover:bg-green-700' 
+                  : 'bg-blue-600 hover:bg-blue-700 active:scale-95 disabled:opacity-50'
+              }`}
             >
-              {isCheckingAvailability ? "Checking..." : (isAvailable ? "Book Now" : "Check Availability")}
+              {isBooked ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Booked Successfully
+                </span>
+              ) : isBooking ? (
+                "Booking..."
+              ) : isCheckingAvailability ? (
+                "Checking..."
+              ) : isAvailable ? (
+                "Book Now"
+              ) : (
+                "Check Availability"
+              )}
             </button>
           </div>
 
@@ -263,10 +292,29 @@ const RoomDetails = () => {
             </div>
             <button 
               type="submit" 
-              disabled={isCheckingAvailability}
-              className="bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all text-white rounded-md px-8 py-4 text-base cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isCheckingAvailability || isBooking || isBooked}
+              className={`transition-all text-white rounded-md px-8 py-4 text-base cursor-pointer disabled:cursor-not-allowed ${
+                isBooked 
+                  ? 'bg-green-600 hover:bg-green-700' 
+                  : 'bg-blue-600 hover:bg-blue-700 active:scale-95 disabled:opacity-50'
+              }`}
             >
-              {isCheckingAvailability ? "Checking..." : (isAvailable ? "Book Now" : "Check Availability")}
+              {isBooked ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Booked Successfully
+                </span>
+              ) : isBooking ? (
+                "Booking..."
+              ) : isCheckingAvailability ? (
+                "Checking..."
+              ) : isAvailable ? (
+                "Book Now"
+              ) : (
+                "Check Availability"
+              )}
             </button>
           </div>
         </form>
