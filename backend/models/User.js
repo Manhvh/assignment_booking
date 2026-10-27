@@ -1,14 +1,51 @@
-import mongoose from "mongoose";
+import { DataTypes } from "sequelize";
+import { sequelize } from "../configs/db.js";
 
-const userSchema= mongoose.Schema({
-    _id:{type:String, required: true},
-    username:{type:String, required: true},
-    email:{type:String, required: true},
-    image:{type:String, required: true},
-    role: {type:String, enum:['user', 'hotelOwner'], default:'user'},
-    recentSearchedCities: [{type: String, required: true}],
-},{timestamps:true});
+const User = sequelize.define("User", {
+    id: {
+        type: DataTypes.STRING(255),
+        primaryKey: true,
+        allowNull: false,
+    },
+    username: {
+        type: DataTypes.STRING(255),
+        allowNull: false,
+    },
+    email: {
+        type: DataTypes.STRING(255),
+        allowNull: false,
+    },
+    password: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+    },
+    image: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        defaultValue: "",
+    },
+    role: {
+        type: DataTypes.ENUM("user", "hotelOwner", "admin"),
+        defaultValue: "user",
+    },
+    isBlocked: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+    },
+    recentSearchedCities: {
+        type: DataTypes.JSON,
+        defaultValue: [],
+    },
+}, {
+    tableName: "users",
+    timestamps: true,
+});
 
-const User =mongoose.model("User", userSchema);
+User.prototype.toJSON = function () {
+    const values = { ...this.get() };
+    delete values.password;
+    values._id = values.id;
+    return values;
+};
 
 export default User;

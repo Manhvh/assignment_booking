@@ -3,10 +3,15 @@ import { assets, cities } from "../assets/assets";
 import { useAppContext } from "../context/AppContext";
 
 const Hero = () => {
-  const { navigate, axios, getToken, setSearchedCities } = useAppContext();
+  const { navigate, axios, getToken, setSearchedCities, cities: dynamicCities, user } = useAppContext();
   const [destination, setDestination] = useState("");
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [guests, setGuests] = useState(2);
   const [isVisible, setIsVisible] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const availableCities = dynamicCities && dynamicCities.length > 0 ? dynamicCities : cities;
 
   const heroImages = [
     "url('https://images.unsplash.com/photo-1564501049412-61c2a3083791?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2080&q=80')",
@@ -28,21 +33,36 @@ const Hero = () => {
 
   const onSearch = async (e) => {
     e.preventDefault();
-    navigate(`/rooms?destination=${destination}`);
+    const queryParams = new URLSearchParams();
+    if (destination) queryParams.set("destination", destination);
+    if (checkIn) queryParams.set("checkIn", checkIn);
+    if (checkOut) queryParams.set("checkOut", checkOut);
+    if (guests) queryParams.set("guests", guests);
 
-    //Call API to save recent searched City
-    await axios.post('/api/user/store-recent-search', { recentSearchedCity: destination },
-      { headers: { Authorization: `Bearer ${await getToken()}` } });
+    navigate(`/rooms?${queryParams.toString()}`);
 
-    //Add Destination to SearchedCities Max 3 Searched Cities
-    setSearchedCities((prevSearchedCities) => {
-      const updatedSearchedCities = [...prevSearchedCities, destination];
-
-      if (updatedSearchedCities.length > 3) {
-        updatedSearchedCities.shift();
+    // Call API to save recent searched City if user logged in
+    try {
+      if (user && destination) {
+        const token = await getToken();
+        if (token) {
+          await axios.post('/api/user/store-recent-search', { recentSearchedCity: destination },
+            { headers: { Authorization: `Bearer ${token}` } });
+        }
       }
-      return updatedSearchedCities;
-    });
+    } catch (err) {
+      console.log(err.message);
+    }
+
+    if (destination) {
+      setSearchedCities((prevSearchedCities) => {
+        const updatedSearchedCities = [...prevSearchedCities, destination];
+        if (updatedSearchedCities.length > 3) {
+          updatedSearchedCities.shift();
+        }
+        return updatedSearchedCities;
+      });
+    }
   };
 
   return (
@@ -124,7 +144,7 @@ const Hero = () => {
               required
             />
             <datalist id="destinations">
-              {cities.map((city, index) => (
+              {availableCities.map((city, index) => (
                 <option value={city} key={index} />
               ))}
             </datalist>
@@ -140,6 +160,9 @@ const Hero = () => {
             <input
               id="checkIn"
               type="date"
+              value={checkIn}
+              min={new Date().toISOString().split("T")[0]}
+              onChange={(e) => setCheckIn(e.target.value)}
               className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 text-sm outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-300 bg-white/80"
             />
           </div>
@@ -154,6 +177,9 @@ const Hero = () => {
             <input
               id="checkOut"
               type="date"
+              value={checkOut}
+              min={checkIn || new Date().toISOString().split("T")[0]}
+              onChange={(e) => setCheckOut(e.target.value)}
               className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-300 bg-white/80"
             />
           </div>
@@ -170,9 +196,10 @@ const Hero = () => {
               max={8}
               id="guests"
               type="number"
+              value={guests}
+              onChange={(e) => setGuests(e.target.value)}
               className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 text-sm outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300 bg-white/80"
               placeholder="2"
-              defaultValue="2"
             />
           </div>
 

@@ -1,15 +1,50 @@
-import mongoose from "mongoose";
+import { DataTypes } from "sequelize";
+import { sequelize } from "../configs/db.js";
 
-const roomSchema = new mongoose.Schema({
-    hotel: { type: mongoose.Schema.Types.ObjectId, ref: "Hotel", required: true },
-    roomType: { type: String, required: true },
-    pricePerNight: { type: Number, required: true },
-    amenities: { type: Array, required: true },
-    images: [{ type: String }],
-    isAvailable: { type: Boolean, default: true },
+const Room = sequelize.define("Room", {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+    },
+    hotelId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
+    roomType: {
+        type: DataTypes.STRING(100),
+        allowNull: false,
+    },
+    pricePerNight: {
+        type: DataTypes.DOUBLE,
+        allowNull: false,
+    },
+    seasonalPricing: {
+        type: DataTypes.JSON,
+        defaultValue: [],
+    },
+    amenities: {
+        type: DataTypes.JSON,
+        allowNull: false,
+        defaultValue: [],
+    },
+    images: {
+        type: DataTypes.JSON,
+        defaultValue: [],
+    },
+    isAvailable: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true,
+    },
+}, {
+    tableName: "rooms",
+    timestamps: true,
+});
 
-}, { timestamps: true });
-
-const Room = mongoose.model("Room", roomSchema);
+Room.prototype.toJSON = function () {
+    const values = { ...this.get() };
+    values._id = values.id;
+    return values;
+};
 
 export default Room;

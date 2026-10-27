@@ -3,24 +3,31 @@ import { assets } from "../../assets/assets";
 import { NavLink } from "react-router-dom";
 
 const Sidebar = () => {
-
   const sidebarLinks = [
-    { name: "Dashboard", path: "/owner-dashboard", icon: assets.dashboardIcon },
-    { name: "Add Room", path: "/owner-dashboard/add-room", icon: assets.addIcon },
-    { name: "List Room", path: "/owner-dashboard/list-room", icon: assets.listIcon },
+    { name: "Tổng quan", path: "/owner-dashboard", icon: assets.dashboardIcon },
+    { name: "Lịch đặt phòng", path: "/owner-dashboard/schedule", icon: assets.calenderIcon },
+    { name: "Quản lý Homestay", path: "/owner-dashboard/manage-hotel", icon: assets.homeIcon },
+    { name: "Thêm phòng & Giá", path: "/owner-dashboard/add-room", icon: assets.addIcon },
+    { name: "Danh sách phòng", path: "/owner-dashboard/list-room", icon: assets.listIcon },
   ];
 
   return (
-    <div className="md:w-64 w-16 border-r h-full text-base border-gray-300 pt-4 flex flex-col transition-all duration-300">
+    <div className="md:w-64 w-16 border-r min-h-screen text-base border-gray-200 pt-4 flex flex-col bg-white">
       {sidebarLinks.map((item, index) => (
         <NavLink
           to={item.path}
           key={index}
-          end="/owner-dashboard"
+          end={item.path === "/owner-dashboard"}
           className={({ isActive }) =>
-            `flex items-center py-3 px-4 md:px-8 gap-3 ${isActive ? "border-r-4 md:border-r-[6px] bg-blue-600/10 border-blue-600 text-blue-600" : "hover:bg-gray-100/90 border-white text-gray-700"}`}>
-            <img src={item.icon} alt={item.name} className="min-h-6 min-w-6" />
-            <p className="md:block hidden text-center">{item.name}</p>
+            `flex items-center py-3.5 px-4 md:px-6 gap-3 transition-colors ${
+              isActive 
+                ? "border-r-4 bg-blue-50 border-blue-600 text-blue-600 font-semibold" 
+                : "hover:bg-gray-50 text-gray-700"
+            }`
+          }
+        >
+          <img src={item.icon} alt={item.name} className="h-5 w-5 object-contain" />
+          <p className="md:block hidden text-sm">{item.name}</p>
         </NavLink>
       ))}
     </div>

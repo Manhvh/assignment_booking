@@ -1,3 +1,10 @@
+import v8 from 'node:v8';
+
+// Polyfill structuredClone for Node.js < 17 (e.g., Node 16)
+if (typeof globalThis.structuredClone !== 'function') {
+  globalThis.structuredClone = (val) => v8.deserialize(v8.serialize(val));
+}
+
 import js from '@eslint/js'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
@@ -23,7 +30,7 @@ export default [
     rules: {
       ...js.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      'no-unused-vars': ['warn', { varsIgnorePattern: '^[A-Z_]', argsIgnorePattern: '^_' }],
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },

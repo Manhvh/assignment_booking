@@ -1,28 +1,58 @@
-import mongoose from "mongoose";
+import { DataTypes } from "sequelize";
+import { sequelize } from "../configs/db.js";
 
-const bookingSchema = new mongoose.Schema({
-    user: { type: String, ref: "User", required: true },
-    room: { type: String, ref: "Room", required: true },
-    hotel: { type: String, ref: "Hotel", required: true },
-    checkInDate: { type: Date, required: true },
-    checkOutDate: { type: Date, required: true },
-    totalPrice: { type: Number, required: true },
-    guests: { type: Number, required: true },
+const Booking = sequelize.define("Booking", {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+    },
+    userId: {
+        type: DataTypes.STRING(255),
+        allowNull: false,
+    },
+    roomId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
+    hotelId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
+    checkInDate: {
+        type: DataTypes.DATE,
+        allowNull: false,
+    },
+    checkOutDate: {
+        type: DataTypes.DATE,
+        allowNull: false,
+    },
+    totalPrice: {
+        type: DataTypes.DOUBLE,
+        allowNull: false,
+    },
+    guests: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 1,
+    },
     status: {
-        type: String,
-        enum: ["pending", "confirmed", "cancelled"],
-        default: "pending",
+        type: DataTypes.ENUM("pending", "confirmed", "cancelled"),
+        defaultValue: "pending",
     },
     paymentMethod: {
-        type: String,
-        required: true,
-        default: "Pay At Hotel",
+        type: DataTypes.STRING(100),
+        defaultValue: "Pay At Hotel",
     },
-    isPaid: { type: Boolean, default: false }
+}, {
+    tableName: "bookings",
+    timestamps: true,
+});
 
-}, { timestamps: true });
-
-
-const Booking = mongoose.model("Booking", bookingSchema);
+Booking.prototype.toJSON = function () {
+    const values = { ...this.get() };
+    values._id = values.id;
+    return values;
+};
 
 export default Booking;

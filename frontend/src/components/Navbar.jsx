@@ -1,24 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { assets, cities } from "../assets/assets.js";
 import { Link, useLocation } from "react-router-dom";
-import { useClerk, UserButton } from "@clerk/clerk-react";
 import { useAppContext } from "../context/AppContext.jsx";
-
-const BookIcon = () => (
-  <svg
-    className="w-4 h-4 text-gray-700" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    fill="none"
-    viewBox="0 0 24 24">
-    <path
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      d="M5 19V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v13H7a2 2 0 0 0-2 2Zm0 0a2 2 0 0 0 2 2h12M9 3v14m7 0v4" />
-  </svg>
-);
+import UserMenu from "./UserMenu.jsx";
 
 const Navbar = () => {
   const navLinks = [
@@ -33,12 +17,9 @@ const Navbar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Clerk hooks for authentication
-  const { openSignIn } = useClerk();
-
   const location = useLocation();
 
-  const { user, navigate, isOwner, setShowHotelRegistration } = useAppContext();
+  const { user, navigate, isOwner, setShowHotelRegistration, isAdmin, openLoginModal } = useAppContext();
 
   // Effect to handle scroll event and change navbar style
   useEffect(() => {
@@ -136,8 +117,20 @@ const Navbar = () => {
               )}
             </span>
           </button>
-        )
-        }
+        )}
+        {user && (
+          <button
+            onClick={() => navigate("/admin")}
+            className={`px-4 py-2 text-xs font-bold rounded-xl cursor-pointer transition-all duration-300 ${
+              isAdmin
+                ? "bg-purple-600 text-white shadow-md hover:bg-purple-700"
+                : "bg-purple-100 text-purple-800 hover:bg-purple-200"
+            }`}
+            title="Khu vực Quản trị viên"
+          >
+            🛡️ {isAdmin ? "Admin Portal" : "Admin Demo"}
+          </button>
+        )}
       </div>
 
       {/* Desktop Right */}
@@ -214,18 +207,11 @@ const Navbar = () => {
         </div>
         {/* here if user is logged in, show UserButton, otherwise show Login button the user button will show the user profile and logout option */}
         {user ? (
-          <UserButton>
-            <UserButton.MenuItems>
-              <UserButton.Action
-                label="My Bookings"
-                labelIcon={<BookIcon />}
-                onClick={() => navigate("/my-bookings")} />
-            </UserButton.MenuItems>
-          </UserButton>
+          <UserMenu />
         ) : (
           <button
-            onClick={openSignIn}
-            className={`group relative px-8 py-3 text-sm font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 ${
+            onClick={openLoginModal}
+            className={`group relative px-8 py-3 text-sm font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 cursor-pointer ${
               isScrolled 
                 ? "bg-gradient-to-r from-gray-800 to-gray-900 text-white shadow-lg hover:shadow-xl" 
                 : "bg-white/20 backdrop-blur-sm text-white border border-white/30 hover:bg-white/30"
@@ -241,8 +227,6 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Menu Button */}
-      {/* here when the user is logged in mobile view the account credentials are preserved and auth is made sure to function right */}
-
       <div className="flex items-center gap-3 md:hidden">
         {/* Mobile Search Button */}
         <button
@@ -260,22 +244,12 @@ const Navbar = () => {
           />
         </button>
 
-        {user && (
-          <UserButton>
-            <UserButton.MenuItems>
-              <UserButton.Action
-                label="My Bookings"
-                labelIcon={<BookIcon />}
-                onClick={() => navigate("/my-bookings")}
-              />
-            </UserButton.MenuItems>
-          </UserButton>
-        )}
+        {user && <UserMenu />}
         <img
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           src={assets.menuIcon}
           alt="menu-icon"
-          className={`${isScrolled && "invert"}h-4`} />
+          className={`${isScrolled && "invert"}h-4 cursor-pointer`} />
       </div>
 
       {/* Mobile Menu */}
@@ -320,10 +294,25 @@ const Navbar = () => {
           </button>
         )}
 
+        {user && (
+          <button
+            onClick={() => {
+              navigate("/admin");
+              setIsMenuOpen(false);
+            }}
+            className="px-6 py-2.5 text-xs font-bold rounded-xl bg-purple-100 text-purple-800"
+          >
+            🛡️ {isAdmin ? "Admin Portal" : "Admin Demo"}
+          </button>
+        )}
+
         {!user && (
           <button
-            onClick={openSignIn}
-            className="group relative px-8 py-3 text-sm font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 bg-gradient-to-r from-gray-800 to-gray-900 text-white shadow-lg">
+            onClick={() => {
+              openLoginModal();
+              setIsMenuOpen(false);
+            }}
+            className="group relative px-8 py-3 text-sm font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 bg-gradient-to-r from-gray-800 to-gray-900 text-white shadow-lg cursor-pointer">
             <span className="flex items-center gap-2">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
